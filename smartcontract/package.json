@@ -1,0 +1,19 @@
+{
+  "name": "rwa-token-smartcontract",
+  "version": "1.0.0",
+  "description": "Tokenized RWA (Real-World Asset) with whitelist and transfer restrictions",
+  "main": "hardhat.config.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy:local": "hardhat run scripts/deploy.js --network hardhat",
+    "deploy:sepolia": "hardhat ignition deploy ./ignition/modules/TokenModule.js --network sepolia"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "hardhat": "^2.28.3"
+  }
+}
