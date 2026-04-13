@@ -1085,6 +1085,19 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.info-text {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+  border-left: 4px solid #0066cc;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #0050b3;
+  line-height: 1.5;
+  font-weight: 500;
+  box-shadow: 0 2px 6px rgba(0, 102, 204, 0.08);
+}
+
 .app-footer {
   background: white;
   padding: 20px 40px;
