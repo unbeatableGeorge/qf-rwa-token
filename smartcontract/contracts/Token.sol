@@ -159,12 +159,16 @@ contract RWAToken {
      * @dev User initiates redemption (equivalent to requesting to burn their tokens)
      * User cannot directly burn; must initiate redemption first
      * Owner then approves the redemption by calling approveRedemption
+     * IMPORTANT: Tokens are locked/frozen during redemption period
      */
     function initiateRedemption(uint256 amount) external returns (bool) {
         require(balances[msg.sender] >= amount, "Insufficient balance for redemption");
         require(amount > 0, "Redemption amount must be greater than 0");
 
-        // User's tokens are reserved for redemption (locked)
+        // Lock user's tokens by removing from balance and recording as pending
+        unchecked {
+            balances[msg.sender] -= amount;
+        }
         pendingRedemptions[msg.sender] += amount;
 
         emit RedemptionInitiated(msg.sender, amount);
@@ -173,16 +177,15 @@ contract RWAToken {
 
     /**
      * @dev Owner approves redemption and burns the tokens
-     * This is called after confirming off-chain asset redemption is successful
+     * Tokens are already locked from initiateRedemption()
+     * This function removes from pending and permanently burns them
      */
     function approveRedemption(address user, uint256 amount) external onlyOwner notZeroAddress(user) {
         require(pendingRedemptions[user] >= amount, "Insufficient pending redemption");
-        require(balances[user] >= amount, "Insufficient balance");
 
-        // Remove from pending redemptions
+        // Burn the pending tokens (already removed from user's balance)
         unchecked {
             pendingRedemptions[user] -= amount;
-            balances[user] -= amount;
         }
         _totalSupply -= amount;
 
@@ -193,11 +196,15 @@ contract RWAToken {
 
     /**
      * @dev Cancel redemption if user changes mind (only owner can call)
+     * Returns locked tokens to user's available balance
      */
     function cancelRedemption(address user, uint256 amount) external onlyOwner notZeroAddress(user) {
         require(pendingRedemptions[user] >= amount, "Insufficient pending redemption");
+        
+        // Return tokens to user's balance
         unchecked {
             pendingRedemptions[user] -= amount;
+            balances[user] += amount;
         }
     }
 

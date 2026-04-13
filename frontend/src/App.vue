@@ -173,9 +173,14 @@
                 <span class="user">{{ formatAddress(redemption.user) }}</span>
                 <span class="amount">{{ redemption.amount }} {{ tokenSymbol }}</span>
               </div>
-              <button @click="executeApproveRedemption(redemption.user, redemption.amount)" class="btn btn-small btn-approve" :disabled="isLoading">
-                {{ isLoading ? '⏳' : '✓ Approve' }}
-              </button>
+              <div class="redemption-actions">
+                <button @click="executeApproveRedemption(redemption.user, redemption.amount)" class="btn btn-small btn-approve" :disabled="isLoading">
+                  {{ isLoading ? '⏳' : '✓ Approve' }}
+                </button>
+                <button @click="executeCancelRedemption(redemption.user, redemption.amount)" class="btn btn-small btn-cancel" :disabled="isLoading">
+                  {{ isLoading ? '⏳' : '✗ Cancel' }}
+                </button>
+              </div>
             </div>
             <div v-if="pendingRedemptions.length === 0" class="empty">
               No pending redemptions
@@ -601,6 +606,22 @@ const executeApproveRedemption = async (user, amount) => {
   } catch (error) {
     recordBlockedTransaction(currentAccount.value, user, error.message)
     console.error('Error approving redemption:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const executeCancelRedemption = async (user, amount) => {
+  isLoading.value = true
+  try {
+    const amountBigInt = ethers.parseUnits(String(amount), Number(tokenDecimals.value))
+    const tx = await contract.cancelRedemption(user, amountBigInt)
+    recordTransaction('Cancel Redemption', tx.hash)
+    await tx.wait()
+    await loadContractData()
+  } catch (error) {
+    recordBlockedTransaction(currentAccount.value, user, error.message)
+    console.error('Error canceling redemption:', error)
   } finally {
     isLoading.value = false
   }
@@ -1096,6 +1117,100 @@ onMounted(() => {
   line-height: 1.5;
   font-weight: 500;
   box-shadow: 0 2px 6px rgba(0, 102, 204, 0.08);
+}
+
+
+.card-pending-redemptions {
+  background: linear-gradient(135deg, #fff9e6 0%, #fffcf0 100%);
+  border-left: 4px solid #ff9800;
+}
+
+.redemption-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 12px;
+  background: white;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border: 1px solid #f0e6d2;
+}
+
+.redemption-info {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+  align-items: center;
+}
+
+.redemption-item .user {
+  font-family: monospace;
+  font-size: 12px;
+  color: #666;
+  min-width: 120px;
+}
+
+.redemption-item .amount {
+  font-weight: bold;
+  color: #ff9800;
+  font-size: 14px;
+}
+
+.redemption-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-approve {
+  background: #4caf50;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.btn-approve:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-approve:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-cancel {
+  background: #ff6b6b;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background: #ff5252;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+}
+
+.btn-cancel:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .app-footer {
